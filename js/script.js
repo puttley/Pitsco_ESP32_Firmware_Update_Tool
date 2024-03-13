@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initBaudRate();
   loadAllSettings();
   updateTheme();
-  logMsg("ESP Web Flasher loaded.");
+  logMsg("ESP Web Flasher loaded. Your device must be in 'boot' mode to connect. Please go to www.pitsco.com/downloads/ESPfirmware to get the latest firmware file and update instructions for your device.");
 });
 
 function initBaudRate() {
@@ -291,16 +291,17 @@ async function clickProgram() {
   baudRate.disabled = true;
   butErase.disabled = true;
   butProgram.disabled = true;
-  for (let i = 0; i < 4; i++) {
-    firmware[i].disabled = true;
-    offsets[i].disabled = true;
-  }
+//  for (let i = 0; i < 4; i++) {       //############### I commented out
+//    firmware[i].disabled = true;
+//    offsets[i].disabled = true;
+//  }
   for (let file of getValidFiles()) {
     progress[file].classList.remove("hidden");
     let binfile = firmware[file].files[0];
     let contents = await readUploadedFileAsArrayBuffer(binfile);
     try {
-      let offset = parseInt(offsets[file].value, 16);
+      //let offset = parseInt(offsets[file].value, 16); // ####### just set offset to zero - no user input
+      let offset = 0;
       const progressBar = progress[file].querySelector("div");
       await espStub.flashData(
         contents,
@@ -315,18 +316,19 @@ async function clickProgram() {
       errorMsg(e);
     }
   }
-  for (let i = 0; i < 4; i++) {
-    firmware[i].disabled = false;
-    offsets[i].disabled = false;
-    progress[i].classList.add("hidden");
-    progress[i].querySelector("div").style.width = "0";
-  }
+//  for (let i = 0; i < 4; i++) {               // ################## not needed with only one filename
+//    firmware[i].disabled = false;
+//    offsets[i].disabled = false;
+//    progress[i].classList.add("hidden");
+//    progress[i].querySelector("div").style.width = "0";
+//  }
   butErase.disabled = false;
   baudRate.disabled = false;
   butProgram.disabled = getValidFiles().length == 0;
   logMsg("To run the new firmware, please reset your device.");
 }
 
+/*
 function getValidFiles() {
   // Get a list of file and offsets
   // This will be used to check if we have valid stuff
@@ -342,6 +344,25 @@ function getValidFiles() {
   }
   return validFiles;
 }
+*/
+
+function getValidFiles() {      // ############# chagned version for only one filename and no offset entry
+  // Get a list of file and offsets
+  // This will be used to check if we have valid stuff
+  // and will also return a list of files to program
+  let validFiles = [];
+  let offsetVals = [];
+  for (let i = 0; i < 1; i++) {
+    //let offs = parseInt(offsets[i].value, 16);
+    let offs = 0;
+    if (firmware[i].files.length > 0 && !offsetVals.includes(offs)) {
+      validFiles.push(i);
+      offsetVals.push(offs);
+    }
+  }
+  return validFiles;
+}
+
 
 /**
  * @name checkProgrammable
